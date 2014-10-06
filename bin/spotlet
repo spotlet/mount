@@ -1,0 +1,90 @@
+#!/bin/bash
+
+set -o pipefail
+
+## environment
+export PREFIX="${PREFIX:-/usr/local}"
+export SPOTLET="${SPOTLET:-${PREFIX}/spotlet}"
+export SERVICE="${SERVICE:-${SPOTLET}/service}"
+export APP="${APP:-${SERVICE}/app}"
+
+## return codes
+export ERROR=10
+export NEEDS_COMPILE=11
+
+## ensure file exists
+ensure () {
+  local arg="${1}";
+  local file="${2}";
+  if ! test "${arg}" "${file}"; then
+    echo >&2 "error: Missing ${file}"
+    exit 1
+  fi
+}
+
+## run a spin process
+spin () {
+  local cmd="${1}"
+  ensure -f "${APP}/spin/${cmd}"
+  ("${APP}/spin/${cmd}")
+  return $?
+}
+
+## main function
+spotlet () {
+
+  ## ensures dependencies structure exists
+  ensure -d "${PREFIX}"
+  ensure -d "${SPOTLET}"
+  ensure -d "${SERVICE}"
+  ensure -d "${APP}"
+
+  ## feature detect and determine if
+  ## compilation is needed
+  (spin 'detect')
+  if [ "$?" == "${ERROR}" ]; then
+    return $?
+  elif [ "$?" == "${NEEDS_COMPILE}" ]; then
+    (spin 'compile')
+    if [ "$?" == "${ERROR}" ]; then
+      return $?
+    fi
+  fi
+
+  ## run tests
+  (spin 'test')
+  if [ "$?" == "${ERROR}" ]; then
+    return $?
+  fi
+
+  ## @TODO - handle test success
+
+  ## notify
+  (spin 'notify')
+  if [ "$?" == "${ERROR}" ]; then
+    return $?
+  fi
+
+  ## @TODO - handle notify success
+
+  (spin 'release')
+  if [ "$?" == "${ERROR}" ]; then
+    return $?
+  fi
+
+  ## @TODO - handle release success
+
+  ## propagate return codes less than
+  ## 10 that fall below the range of
+  ## status codes we care about
+  if (( $? < 10 )); then
+    return $?
+  else
+    return 0
+  fi
+}
+
+## run
+(spotlet "${@}")
+exit $?
+

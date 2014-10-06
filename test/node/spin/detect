@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+exit ${NEEDS_COMPILE}
+

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+main () {
+  local path="${1}"
+  local args=()
+  args+=("-v $(pwd)/bin:/usr/local/spotlet/bin")
+  args+=("-v ${path}:/usr/local/spotlet/service/app")
+  args+=("-t service")
+  args+=("/usr/local/spotlet/bin/spotlet")
+  (docker run ${args[@]})
+  return $?
+}
+
+(main "${@}")
+exit $?
+
