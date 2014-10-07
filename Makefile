@@ -18,10 +18,13 @@ $(TESTS):
 
 install: uninstall
 	cp -rf $(CWD) $(PREFIX)/spotlet
+	install spotlet-mount $(PREFIX)/bin
 
 link: uninstall
 	ln -sf $(CWD) $(PREFIX)/spotlet
+	ln -sf $(CWD)/spotlet-mount $(PREFIX)/bin/spotlet-mount
 
 uninstall:
 	rm -rf $(PREFIX)/spotlet
+	rm -f $(PREFIX)/bin/spotlet-mount
 

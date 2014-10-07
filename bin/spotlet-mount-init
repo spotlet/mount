@@ -17,6 +17,7 @@ export NEEDS_COMPILE=11
 
 ## setup bin in path
 setup () {
+  export PATH="${SPOTLET}/bin:${PATH}"
   {
     pushd .
     cd $(dirname ${BASH_SOURCE[0]})
@@ -91,15 +92,6 @@ spotlet () {
         return ${rc}
       fi
 
-      ## @TODO - handle test success
-
-      ## notify
-      (spin-cmd ${spin} 'notify')
-      rc=$?
-      if [ "${rc}" == "${ERROR}" ]; then
-        return ${rc}
-      fi
-
       if (( ${rc} > 0 && ${rc} < 10 )); then
         return ${rc}
       fi
@@ -108,11 +100,13 @@ spotlet () {
 
   ## run
   if test -f "${APP}/start"; then
-    echo foo
+    info "Starting application..."
     {
       pushd . > /dev/null 2>&1
       cd ${APP}
-      "./start"
+      "./start" &
+      trap "kill -9 $! && exit 1" SIGTERM SIGINT
+      wait
     }
   fi
 

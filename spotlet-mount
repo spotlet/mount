@@ -30,12 +30,15 @@ spotlet-mount () {
   ## proxy args
   args+=("${@}")
 
-  docker stop $(cat "$(pwd)/$(basename ${path}).cid") > /dev/null 2>&1
-  rm -f "$(pwd)/$(basename ${path}).cid"
-  args+=("--cidfile=$(pwd)/$(basename ${path}).cid")
+  if test -f "$(pwd)/$(basename ${path}).cid"; then
+    docker stop $(cat "$(pwd)/$(basename ${path}).cid") > /dev/null 2>&1
+    rm -f "$(pwd)/$(basename ${path}).cid"
+  fi
+
+  #args+=("--cidfile=$(pwd)/$(basename ${path}).cid")
 
   ## volumes
-  args+=("-v ${SPOTLET_MOUNT_DIR}/bin:/usr/local/spotlet/bin")
+  args+=("-v ${SPOTLET_MOUNT_DIR}:/usr/local/spotlet")
   args+=("-v ${path}:/usr/local/spotlet/service/app")
 
   ## environment
@@ -71,6 +74,7 @@ install_spin () {
   local dest="${path}/spins/$(basename ${spin})"
   mkdir -p "${path}/spins"
   if ! test -d "${dest}"; then
+    echo "install: spin (\`${spin}')"
     git clone "${remote}" "${dest}" > /dev/null 2>&1
   fi
   return $?
