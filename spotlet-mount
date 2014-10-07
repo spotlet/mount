@@ -3,11 +3,25 @@
 main () {
   local path="${1}"
   local args=()
+
+  shift
+
+  ## proxy args
+  args+=("${@}")
+
+  ## volumes
   args+=("-v $(pwd)/bin:/usr/local/spotlet/bin")
   args+=("-v ${path}:/usr/local/spotlet/service/app")
+
+  ## environment
+  #args+=("-i")
+
+  ## tag
   args+=("-t service")
-  args+=("/usr/local/spotlet/bin/spotlet")
-  (docker run ${args[@]})
+
+  ## command
+  args+=("/usr/local/spotlet/bin/spotlet-mount-init")
+  (docker run --rm ${args[@]})
   return $?
 }
 

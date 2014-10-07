@@ -89,6 +89,11 @@ spotlet () {
     return ${rc}
   fi
 
+  ## @TODO - handle end success
+
+  (spin 'run' "${@}")
+  rc=$?
+
   ## propagate return codes less than
   ## 10 that fall below the range of
   ## status codes we care about
