@@ -10,7 +10,7 @@ main () {
   args+=("${@}")
 
   ## volumes
-  args+=("-v $(pwd)/bin:/usr/local/spotlet/bin")
+  args+=("-v ${SPOTLET_MOUNT_DIR:-$(pwd)}/bin:/usr/local/spotlet/bin")
   args+=("-v ${path}:/usr/local/spotlet/service/app")
 
   ## environment
