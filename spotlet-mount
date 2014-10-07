@@ -1,6 +1,27 @@
 #!/bin/bash
 
-main () {
+SPOTLET_MOUNT_DIR="${SPOTLET_MOUNT_DIR:-$(pwd)}"
+SPOTLET_GIT_REMOTE="${SPOTLET_GIT_REMOTE:-"git@github.com:"}"
+SPOTLET_REMOTE="${SPOTLET_REMOTE:-"https://raw.githubusercontent.com"}"
+
+## https://gist.github.com/pkuczynski/8665367
+parse_yaml() {
+  local prefix=$2
+  local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+  sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
+    -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+  awk -F$fs '{
+  indent = length($1)/2;
+  vname[indent] = $2;
+  for (i in vname) {if (i > indent) {delete vname[i]}}
+    if (length($3) > 0) {
+      vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+      printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+    }
+  }'
+}
+
+spotlet-mount () {
   local path="${1}"
   local args=()
 
@@ -9,8 +30,12 @@ main () {
   ## proxy args
   args+=("${@}")
 
+  docker stop $(cat "$(pwd)/$(basename ${path}).cid") > /dev/null 2>&1
+  rm -f "$(pwd)/$(basename ${path}).cid"
+  args+=("--cidfile=$(pwd)/$(basename ${path}).cid")
+
   ## volumes
-  args+=("-v ${SPOTLET_MOUNT_DIR:-$(pwd)}/bin:/usr/local/spotlet/bin")
+  args+=("-v ${SPOTLET_MOUNT_DIR}/bin:/usr/local/spotlet/bin")
   args+=("-v ${path}:/usr/local/spotlet/service/app")
 
   ## environment
@@ -20,8 +45,57 @@ main () {
   args+=("-t service")
 
   ## command
-  args+=("/usr/local/spotlet/bin/spotlet-mount-init")
-  (docker run --rm ${args[@]})
+  args+=("bash -c '/usr/local/spotlet/bin/spotlet-mount-init'")
+  docker run ${args[@]}
+  return $?
+}
+
+package () {
+  local path="${1}"
+  local prefix="${2}"
+  local pkg="${path}/spin.yml"
+
+  if ! test -f "${pkg}"; then
+    echo >&2 "error: Missing \`spin.yml'"
+  fi
+
+  (parse_yaml "${path}/spin.yml" | grep -ni "^${prefix}")
+
+  return $?
+}
+
+install_spin () {
+  local root="${1}"
+  local spin="${2}"
+  local remote="${SPOTLET_GIT_REMOTE}${spin}.git"
+  local dest="${path}/spins/$(basename ${spin})"
+  mkdir -p "${path}/spins"
+  if ! test -d "${dest}"; then
+    git clone "${remote}" "${dest}" > /dev/null 2>&1
+  fi
+  return $?
+}
+
+main () {
+  local path="${1}"
+  ## install spins
+  package "${path}" 'spin' | {
+    while read -r spin; do
+      spin="$(echo ${spin} | tr '=' ' ' | awk '{print $2}' | tr -d '"')"
+      install_spin "${path}" "${spin}" > /dev/null
+      if (( $? != 0 )); then
+        echo >&2 "error: Error installing \`${spin}'"
+        exit 1
+      fi
+    done
+  }
+
+  if (( $? != 0 )); then
+    return 1;
+  fi
+
+  ## mount
+  spotlet-mount "${@}"
   return $?
 }
 

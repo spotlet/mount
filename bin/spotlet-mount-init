@@ -15,10 +15,22 @@ export PATH="${SPOTLET}/bin:${SERVICE}/bin:${PATH}"
 export ERROR=10
 export NEEDS_COMPILE=11
 
+## setup bin in path
+setup () {
+  {
+    pushd .
+    cd $(dirname ${BASH_SOURCE[0]})
+    install $(ls) ${PREFIX}/bin
+    popd
+  } > /dev/null 2>&1
+  return $?
+}
+
 ## ensure file exists
 ensure () {
   local arg="${1}";
   local file="${2}";
+  debug "ensure \`$file'"
   if ! test "${arg}" "${file}"; then
     echo >&2 "error: Missing ${file}"
     exit 1
@@ -26,82 +38,85 @@ ensure () {
 }
 
 ## run a spin process
-spin () {
-  local cmd="${1}"
-  shift
-  ensure -f "${APP}/spin/${cmd}"
-  ("${APP}/spin/${cmd}" "${@}")
+spin-cmd () {
+  local spin="${1}"; shift
+  local cmd="${1}"; shift
+  echo "${spin}: $cmd"
+  ensure -f "${APP}/spins/${spin}/${cmd}"
+  ("${APP}/spins/${spin}/${cmd}" "${@}")
   return $?
 }
 
 ## main function
 spotlet () {
   local rc=0
+  local spins=()
+
+  ## setup path binary
+  setup
+
+  ## common lib
+  source $(which spotlet-mount-common)
 
   ## ensures dependencies structure exists
+  ensure -d "${PREFIX}"
   ensure -d "${PREFIX}"
   ensure -d "${SPOTLET}"
   ensure -d "${SERVICE}"
   ensure -d "${APP}"
 
-  ## feature detect and determine if
-  ## compilation is needed
-  (spin 'detect')
-  rc=$?
-  if [ "${rc}" == "${ERROR}" ]; then
-    return ${rc}
-  elif [ "${rc}" == "${NEEDS_COMPILE}" ]; then
-    (spin 'compile')
-    if [ "${rc}" == "${ERROR}" ]; then
-      return ${rc}
-    fi
+  if test -d ${APP}/spins; then
+    spins+=($( ls ${APP}/spins ))
+
+    for spin in ${spins[@]}; do
+      info "Building spin \`${spin}'"
+
+      ## feature detect and determine if
+      ## compilation is needed
+      (spin-cmd ${spin} 'detect')
+      rc=$?
+      if [ "${rc}" == "${ERROR}" ]; then
+        return ${rc}
+      elif [ "${rc}" == "${NEEDS_COMPILE}" ]; then
+        (spin-cmd ${spin} 'compile')
+        if [ "${rc}" == "${ERROR}" ]; then
+          return ${rc}
+        fi
+      fi
+
+      ## run tests
+      (spin-cmd ${spin} 'test')
+      rc=$?
+      if [ "${rc}" == "${ERROR}" ]; then
+        return ${rc}
+      fi
+
+      ## @TODO - handle test success
+
+      ## notify
+      (spin-cmd ${spin} 'notify')
+      rc=$?
+      if [ "${rc}" == "${ERROR}" ]; then
+        return ${rc}
+      fi
+
+      if (( ${rc} > 0 && ${rc} < 10 )); then
+        return ${rc}
+      fi
+    done
   fi
 
-  ## run tests
-  (spin 'test')
-  rc=$?
-  if [ "${rc}" == "${ERROR}" ]; then
-    return ${rc}
+  ## run
+  if test -f "${APP}/start"; then
+    echo foo
+    {
+      pushd . > /dev/null 2>&1
+      cd ${APP}
+      "./start"
+    }
   fi
 
-  ## @TODO - handle test success
-
-  ## notify
-  (spin 'notify')
-  rc=$?
-  if [ "${rc}" == "${ERROR}" ]; then
-    return ${rc}
-  fi
-
-  ## @TODO - handle notify success
-
-  (spin 'release')
-  rc=$?
-  if [ "${rc}" == "${ERROR}" ]; then
-    return ${rc}
-  fi
-
-  ## @TODO - handle release success
-
-  (spin 'end' "${rc}")
-  rc=$?
-  if [ "${rc}" == "${ERROR}" ]; then
-    return ${rc}
-  fi
-
-  ## @TODO - handle end success
-
-  (spin 'run' "${@}")
-  rc=$?
-
-  ## propagate return codes less than
-  ## 10 that fall below the range of
-  ## status codes we care about
-  if (( ${rc} < 10 )); then
-    return ${rc}
-  else
-    return 0
-  fi
+  return $?
 }
 
 ## run

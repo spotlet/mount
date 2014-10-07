@@ -7,7 +7,5 @@ curl $node_url -s -o - | tar xzf - -C $(pwd)
 mv node-v${node_version}-linux-x64 node
 mkdir -p ${SERVICE}/bin
 install $(ls node/bin/*) ${SERVICE}/bin
-node -v
 
 exit $?
-

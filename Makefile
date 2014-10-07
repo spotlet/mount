@@ -19,7 +19,7 @@ $(TESTS):
 install: uninstall
 	cp -rf $(CWD) $(PREFIX)/spotlet
 
-link:
+link: uninstall
 	ln -sf $(CWD) $(PREFIX)/spotlet
 
 uninstall:

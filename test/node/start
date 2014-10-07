@@ -1,5 +1,3 @@
 #!/usr/bin/env bash
-
-cd app/app
+ls
 node .
-exit $?
