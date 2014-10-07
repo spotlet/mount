@@ -63,6 +63,8 @@ spotlet () {
   ## common lib
   source $(which spotlet-mount-common)
 
+  cd ${APP}
+
   ## ensures dependencies structure exists
   ensure -d "${PREFIX}"
   ensure -d "${PREFIX}"
@@ -71,6 +73,8 @@ spotlet () {
   ensure -d "${APP}"
 
   if test -d ${APP}/spins; then
+    pushd .
+    cd ${TMPDIR:-/tmp}
     spins+=($( ls ${APP}/spins ))
 
     for spin in ${spins[@]}; do
@@ -100,6 +104,7 @@ spotlet () {
         return ${rc}
       fi
     done
+    popd > /dev/null 2>&1
   fi
 
   ## run
