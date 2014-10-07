@@ -113,7 +113,8 @@ spotlet () {
     {
       pushd . > /dev/null 2>&1
       cd ${APP}
-      "./start" &
+      mkdir -p ${SERVICE}/log
+      ./start > ${SERVICE}/log/stdout 2> ${SERVICE}/log/stderr &
       trap "kill -9 $! && exit 1" SIGTERM SIGINT
       wait
     }
