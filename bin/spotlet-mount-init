@@ -24,6 +24,10 @@ setup () {
     install $(ls) ${PREFIX}/bin
     popd
   } > /dev/null 2>&1
+
+  mkdir -p ${SERVICE} > /dev/null 2>&1
+  mkdir -p ${APP} > /dev/null 2>&1
+
   return $?
 }
 
@@ -53,7 +57,7 @@ spotlet () {
   local rc=0
   local spins=()
 
-  ## setup path binary
+  ## setup state
   setup
 
   ## common lib
