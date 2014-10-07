@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-source $(which spotlet-mount-common)
-exit ${NEEDS_COMPILE}
-

@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-if ! command -v node 2>&1 > /dev/null; then
-  exit ${ERROR}
-fi
-
