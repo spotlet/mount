@@ -18,6 +18,7 @@ export NEEDS_COMPILE=11
 ## setup bin in path
 setup () {
   export PATH="${SPOTLET}/bin:${PATH}"
+
   {
     pushd . > /dev/null 2>&1
     cd $(dirname ${BASH_SOURCE[0]})
@@ -115,6 +116,7 @@ spotlet () {
     popd > /dev/null 2>&1
   fi
 
+  ls $APP
   ## run
   if test -f "${APP}/start"; then
     info "Starting application..."

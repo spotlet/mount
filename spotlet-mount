@@ -4,7 +4,7 @@ PREFIX="${PREFIX:-/usr/local}"
 SPOTLET_MOUNT_DIR="${SPOTLET_MOUNT_DIR:-$(pwd)}"
 SPOTLET_GIT_REMOTE="${SPOTLET_GIT_REMOTE:-"git@github.com:"}"
 SPOTLET_REMOTE="${SPOTLET_REMOTE:-"https://raw.githubusercontent.com"}"
-SPOTLETS_DIR="${SPOTLETS_DIR:-${PREFIX}/spotlets}"
+SPOTLET_INDEX="${SPOTLET_INDEX:-${PREFIX}/spotlets}"
 
 ## https://gist.github.com/pkuczynski/8665367
 parse_yaml() {
@@ -95,7 +95,7 @@ main () {
   shift
 
   if ! test -d "${path}"; then
-    local tmp="${SPOTLETS_DIR}/${path}"
+    local tmp="${SPOTLET_INDEX}/${path}"
     if test -d "${tmp}"; then
       path="${tmp}"
     else
