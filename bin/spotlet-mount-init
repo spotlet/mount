@@ -19,10 +19,10 @@ export NEEDS_COMPILE=11
 setup () {
   export PATH="${SPOTLET}/bin:${PATH}"
   {
-    pushd .
+    pushd . > /dev/null 2>&1
     cd $(dirname ${BASH_SOURCE[0]})
     install $(ls) ${PREFIX}/bin
-    popd
+    popd > /dev/null 2>&1
   } > /dev/null 2>&1
 
   mkdir -p ${SERVICE} > /dev/null 2>&1
@@ -48,8 +48,12 @@ spin-cmd () {
   local cmd="${1}"; shift
   echo "${spin}: $cmd"
   ensure -f "${APP}/spins/${spin}/${cmd}"
+  pushd . > /dev/null 2>&1
+  cd "${APP}/spins/${spin}"
   ("${APP}/spins/${spin}/${cmd}" "${@}")
-  return $?
+  local rc=$?
+  popd > /dev/null 2>&1
+  return ${rc}
 }
 
 ## main function
@@ -72,13 +76,16 @@ spotlet () {
   ensure -d "${SERVICE}"
   ensure -d "${APP}"
 
+  chown -fR '0000:0000' ${APP}
   if test -d ${APP}/spins; then
-    pushd .
+    pushd . > /dev/null 2>&1
     cd ${TMPDIR:-/tmp}
     spins+=($( ls ${APP}/spins ))
 
     for spin in ${spins[@]}; do
       info "Building spin \`${spin}'"
+
+      export SPIN_DIR="${spin}"
 
       ## feature detect and determine if
       ## compilation is needed
@@ -87,6 +94,7 @@ spotlet () {
       if [ "${rc}" == "${ERROR}" ]; then
         return ${rc}
       elif [ "${rc}" == "${NEEDS_COMPILE}" ]; then
+        info "Needs compile"
         (spin-cmd ${spin} 'compile')
         if [ "${rc}" == "${ERROR}" ]; then
           return ${rc}
@@ -114,9 +122,8 @@ spotlet () {
       pushd . > /dev/null 2>&1
       cd ${APP}
       mkdir -p ${SERVICE}/log
-      ./start > ${SERVICE}/log/stdout 2> ${SERVICE}/log/stderr &
-      trap "kill -9 $! && exit 1" SIGTERM SIGINT
-      wait
+      #./start > ${SERVICE}/log/stdout 2> ${SERVICE}/log/stderr
+      ./start
     }
   fi
 

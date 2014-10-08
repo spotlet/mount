@@ -1,8 +1,10 @@
 #!/bin/bash
 
+PREFIX="${PREFIX:-/usr/local}"
 SPOTLET_MOUNT_DIR="${SPOTLET_MOUNT_DIR:-$(pwd)}"
 SPOTLET_GIT_REMOTE="${SPOTLET_GIT_REMOTE:-"git@github.com:"}"
 SPOTLET_REMOTE="${SPOTLET_REMOTE:-"https://raw.githubusercontent.com"}"
+SPOTLETS_DIR="${SPOTLETS_DIR:-${PREFIX}/spotlets}"
 
 ## https://gist.github.com/pkuczynski/8665367
 parse_yaml() {
@@ -23,6 +25,7 @@ parse_yaml() {
 
 spotlet-mount () {
   local path="${1}"
+  local cid="${path}/run.cid"
   local args=()
 
   shift
@@ -35,20 +38,21 @@ spotlet-mount () {
     rm -f "$(pwd)/$(basename ${path}).cid"
   fi
 
-  #args+=("--cidfile=$(pwd)/$(basename ${path}).cid")
-
   ## volumes
   args+=("-v ${SPOTLET_MOUNT_DIR}:/usr/local/spotlet")
   args+=("-v ${path}:/usr/local/spotlet/service/app")
-
-  ## environment
-  #args+=("-i")
 
   ## tag
   args+=("-t service")
 
   ## command
   args+=("bash -c '/usr/local/spotlet/bin/spotlet-mount-init'")
+  if test -f "${cid}"; then
+    docker stop $(cat "${cid}") > /dev/null 2>&1
+    rm -f "${cid}"
+  fi
+
+  #docker run ${args[@]} > "${path}/run.cid"
   docker run ${args[@]}
   return $?
 }
@@ -82,6 +86,19 @@ install_spin () {
 
 main () {
   local path="${1}"
+
+  shift
+
+  if ! test -d "${path}"; then
+    local tmp="${SPOTLETS_DIR}/${path}"
+    if test -d "${tmp}"; then
+      path="${tmp}"
+    else
+      echo >&2 "error: No such file or directory \`${path}'"
+      return 1
+    fi
+  fi
+
   ## install spins
   package "${path}" 'spin' | {
     while read -r spin; do
@@ -99,7 +116,7 @@ main () {
   fi
 
   ## mount
-  spotlet-mount "${@}"
+  spotlet-mount "${path}" "${@}"
   return $?
 }
 
