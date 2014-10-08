@@ -33,6 +33,11 @@ spotlet-mount () {
   ## proxy args
   args+=("${@}")
 
+  if ! test -d "${path}"; then
+    echo >&2 "error: No such mount point \`${path}'"
+    exit 1
+  fi
+
   if test -f "$(pwd)/$(basename ${path}).cid"; then
     docker stop $(cat "$(pwd)/$(basename ${path}).cid") > /dev/null 2>&1
     rm -f "$(pwd)/$(basename ${path}).cid"
@@ -94,7 +99,7 @@ main () {
     if test -d "${tmp}"; then
       path="${tmp}"
     else
-      echo >&2 "error: No such file or directory \`${path}'"
+      echo >&2 "error: No such mount point \`${path}'"
       return 1
     fi
   fi
