@@ -119,7 +119,6 @@ spotlet () {
   if test -f "${APP}/start"; then
     info "Starting application..."
     {
-      pushd . > /dev/null 2>&1
       cd ${APP}
       mkdir -p ${SERVICE}/log
       #./start > ${SERVICE}/log/stdout 2> ${SERVICE}/log/stderr
