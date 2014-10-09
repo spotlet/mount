@@ -1,21 +1,56 @@
 #!/usr/bin/env bash
 
+## environment contants
+export PREFIX="${PREFIX:-/usr/local}"
+export SPOTLET_MOUNT_DIR="${SPOTLET_MOUNT_DIR:-$(pwd)}"
+export SPOTLET_GIT_REMOTE="${SPOTLET_GIT_REMOTE:-"git@github.com:"}"
+export SPOTLET_REMOTE="${SPOTLET_REMOTE:-"https://raw.githubusercontent.com"}"
+export SPOTLET_INDEX="${SPOTLET_INDEX:-${PREFIX}/.spotlets}"
+
+## parses a YAML file (see: https://gist.github.com/pkuczynski/8665367)
+parse_yaml() {
+  local prefix=$2
+  local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+  sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
+    -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+  awk -F$fs '{
+  indent = length($1)/2;
+  vname[indent] = $2;
+  for (i in vname) {if (i > indent) {delete vname[i]}}
+    if (length($3) > 0) {
+      vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+      printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+    }
+  }'
+}
+
+## output buffer prefixed with `info: '
 info () {
   echo "info: ${@}"
 }
 
+## output buffer to stderr prefixed with `debug: '
 debug () {
   if ! test -z ${DEBUG}; then
-    echo "debug: ${@}"
+    echo >&2 "debug: ${@}"
   fi
 }
 
+## output buffer to stderr prefixed with `error: '
 error () {
   echo >&2 "error: ${@} "
 }
 
+## output fatal error and exit with code `1'
 fatal () {
   error "${@}"
   exit 1
 }
+
+## exports
+export -f parse_yaml
+export -f info
+export -f debug
+export -f error
+export -f fatal
 

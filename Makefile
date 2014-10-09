@@ -3,6 +3,8 @@ CWD ?= $(shell pwd)
 PREFIX ?= /usr/local
 TESTS ?= $(wildcard test/*)
 
+BINS ?= $(wildcard bin/*)
+
 .PHONY: docker
 docker/: docker
 docker:
@@ -18,7 +20,7 @@ $(TESTS):
 
 install: uninstall
 	cp -rf $(CWD) $(PREFIX)/spotlet
-	install spotlet-mount $(PREFIX)/bin
+	install $(BINS) $(PREFIX)/bin
 
 link: uninstall
 	ln -sf $(CWD) $(PREFIX)/spotlet

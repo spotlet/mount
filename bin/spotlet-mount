@@ -1,11 +1,31 @@
 #!/bin/bash
 
-source $(which spotlet-mount-common)
+PREFIX="${PREFIX:-/usr/local}"
+SPOTLET_MOUNT_DIR="${SPOTLET_MOUNT_DIR:-$(pwd)}"
+SPOTLET_GIT_REMOTE="${SPOTLET_GIT_REMOTE:-"git@github.com:"}"
+SPOTLET_REMOTE="${SPOTLET_REMOTE:-"https://raw.githubusercontent.com"}"
+SPOTLET_INDEX="${SPOTLET_INDEX:-${PREFIX}/.spotlets}"
 
-## mount spotlet and bind to container
+## https://gist.github.com/pkuczynski/8665367
+parse_yaml() {
+  local prefix=$2
+  local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+  sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
+    -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+  awk -F$fs '{
+  indent = length($1)/2;
+  vname[indent] = $2;
+  for (i in vname) {if (i > indent) {delete vname[i]}}
+    if (length($3) > 0) {
+      vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+      printf("%s%s%s=\"%s\"\n", "'$prefix'",vn, $2, $3);
+    }
+  }'
+}
+
 spotlet-mount () {
   local path="${1}"
-  local cid_file="${path}/run.cid"
+  local cid="${path}/run.cid"
   local args=()
 
   shift
@@ -13,16 +33,14 @@ spotlet-mount () {
   ## proxy args
   args+=("${@}")
 
-  ## ensure mount source exists
   if ! test -d "${path}"; then
     echo >&2 "error: No such mount point \`${path}'"
     exit 1
   fi
 
-  ## stop already running container
-  if test -f "${cid_file}"; then
-    docker stop $(cat "${cid_file}") > /dev/null 2>&1
-    rm -f "${cid_file}"
+  if test -f "$(pwd)/$(basename ${path}).cid"; then
+    docker stop $(cat "$(pwd)/$(basename ${path}).cid") > /dev/null 2>&1
+    rm -f "$(pwd)/$(basename ${path}).cid"
   fi
 
   ## volumes
@@ -34,13 +52,15 @@ spotlet-mount () {
 
   ## command
   args+=("bash -c '/usr/local/spotlet/bin/spotlet-mount-init'")
+  if test -f "${cid}"; then
+    docker stop $(cat "${cid}") > /dev/null 2>&1
+    rm -f "${cid}"
+  fi
 
-  ## purge service state
   rm -rf ${SPOTLET_MOUNT_DIR}/service/*
 
   #docker run ${args[@]} > "${path}/run.cid"
-
-  ## launch container
+  #echo docker run ${args[@]}
   docker run ${args[@]}
   return $?
 }
