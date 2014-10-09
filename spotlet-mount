@@ -57,7 +57,10 @@ spotlet-mount () {
     rm -f "${cid}"
   fi
 
+  rm -rf ${SPOTLET_MOUNT_DIR}/service/*
+
   #docker run ${args[@]} > "${path}/run.cid"
+  #echo docker run ${args[@]}
   docker run ${args[@]}
   return $?
 }
