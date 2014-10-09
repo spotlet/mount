@@ -47,6 +47,15 @@ fatal () {
   exit 1
 }
 
+## update status of spotlet at `path'
+status () {
+  local path="${1}"; shift
+  local status="${@}"
+  rm -f "${path}/.status"
+  echo -ne "${status}" > "${path}/.status"
+  return $?
+}
+
 ## exports
 export -f parse_yaml
 export -f info
