@@ -1,4 +1,3 @@
 spins
-service/app
-service/bin
-service/log
+service/*
+!service/.gitkeep

@@ -6,7 +6,7 @@ set -o pipefail
 export PREFIX="${PREFIX:-/usr/local}"
 export SPOTLET="${SPOTLET:-${PREFIX}/spotlet}"
 export SERVICE="${SERVICE:-${SPOTLET}/service}"
-export APP="${APP:-${SERVICE}/app}"
+export APP="${APP:-${SERVICE}/${SPOTLET_NAME:-app-${RANDOM}}}"
 
 ## update path
 export PATH="${SPOTLET}/bin:${SERVICE}/bin:${PATH}"

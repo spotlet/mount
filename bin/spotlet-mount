@@ -26,6 +26,7 @@ parse_yaml() {
 spotlet-mount () {
   local path="${1}"
   local cid="${path}/run.cid"
+  local name="$(basename ${path})"
   local args=()
 
   shift
@@ -43,9 +44,12 @@ spotlet-mount () {
     rm -f "$(pwd)/$(basename ${path}).cid"
   fi
 
+  ## environment
+  args+=("-e SPOTLET_NAME=${name}")
+
   ## volumes
   args+=("-v ${SPOTLET_MOUNT_DIR}:/usr/local/spotlet")
-  args+=("-v ${path}:/usr/local/spotlet/service/app")
+  args+=("-v ${path}:/usr/local/spotlet/service/${name}")
 
   ## tag
   args+=("-t service")
@@ -56,8 +60,6 @@ spotlet-mount () {
     docker stop $(cat "${cid}") > /dev/null 2>&1
     rm -f "${cid}"
   fi
-
-  rm -rf ${SPOTLET_MOUNT_DIR}/service/*
 
   #docker run ${args[@]} > "${path}/run.cid"
   #echo docker run ${args[@]}
