@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source $(which spotlet-mount-common)
+
 PREFIX="${PREFIX:-/usr/local}"
 SPOTLET_MOUNT_DIR="${SPOTLET_MOUNT_DIR:-$(pwd)}"
 SPOTLET_GIT_REMOTE="${SPOTLET_GIT_REMOTE:-"git@github.com:"}"
@@ -88,8 +90,8 @@ install_spin () {
   local dest="${path}/spins/$(basename ${spin})"
   mkdir -p "${path}/spins"
   if ! test -d "${dest}"; then
-    echo "install: spin (\`${spin}')"
-    git clone "${remote}" "${dest}"
+    debug "install: spin (\`${spin}')"
+    git clone "${remote}" "${dest}" > /dev/null
   fi
   return $?
 }

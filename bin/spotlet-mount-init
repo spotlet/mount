@@ -80,7 +80,7 @@ spotlet () {
   ensure -d "${SERVICE}"
   ensure -d "${APP}"
 
-  chown -fR '0000:0000' ${APP}
+  #chown -fR '0000:0000' ${APP}
   if test -d ${APP}/spins; then
     pushd . > /dev/null 2>&1
     cd ${TMPDIR:-/tmp}
