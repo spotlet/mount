@@ -130,7 +130,7 @@ spotlet () {
     status "${APP}"  "building"
     {
       cd "${APP}"
-      ./build
+      ./build >> build.log
       if (( 0 != $? )); then
         status "${APP}" "failed"
         return $?
