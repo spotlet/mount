@@ -1,3 +1,4 @@
 spins
 service/*
 !service/.gitkeep
+node_modules/
