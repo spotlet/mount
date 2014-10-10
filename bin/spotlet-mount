@@ -89,7 +89,7 @@ install_spin () {
   mkdir -p "${path}/spins"
   if ! test -d "${dest}"; then
     echo "install: spin (\`${spin}')"
-    git clone "${remote}" "${dest}" > /dev/null 2>&1
+    git clone "${remote}" "${dest}"
   fi
   return $?
 }
@@ -113,7 +113,7 @@ main () {
   package "${path}" 'spin' | {
     while read -r spin; do
       spin="$(echo ${spin} | tr '=' ' ' | awk '{print $2}' | tr -d '"')"
-      install_spin "${path}" "${spin}" > /dev/null
+      install_spin "${path}" "${spin}"
       if (( $? != 0 )); then
         echo >&2 "error: Error installing \`${spin}'"
         exit 1
