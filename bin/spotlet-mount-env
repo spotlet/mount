@@ -2,7 +2,7 @@
 
 main () {
   local local_env=0
-  local pre="/usr/local"
+  local pre="${PREFIX:-/usr/local}"
   local spdir
   case "${1}" in
     -l|--local)
