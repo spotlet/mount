@@ -95,13 +95,16 @@ tasks.push(function mount (next) {
   var cmd = 'spotlet-mq-client';
   var input = 'mount '+ dest +' -p '+ port +':6889';
   var child = spawn(cmd);
+  console.log("mounting...");
   child.stdin.write(input);
   child.on('error', echeck);
   child.stdout.on('data', function (chunk) {
+    console.log("chunk %s", chunk);
     cid = String(chunk);
   });
 
   child.on('close', function () {
+    console.log("Mount complete");
     next();
   });
 });

@@ -3,7 +3,7 @@
 ## environment contants
 export PREFIX="${PREFIX:-/usr/local}"
 export SPOTLET_MOUNT_DIR="${SPOTLET_MOUNT_DIR:-$(pwd)}"
-export SPOTLET_GIT_REMOTE="${SPOTLET_GIT_REMOTE:-"git@github.com:"}"
+export SPOTLET_GIT_REMOTE="${SPOTLET_GIT_REMOTE:-"https://github.com/"}"
 export SPOTLET_REMOTE="${SPOTLET_REMOTE:-"https://raw.githubusercontent.com"}"
 export SPOTLET_INDEX="${SPOTLET_INDEX:-${PREFIX}/.spotlets}"
 

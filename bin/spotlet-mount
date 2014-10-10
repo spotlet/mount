@@ -2,12 +2,6 @@
 
 source $(which spotlet-mount-common)
 
-PREFIX="${PREFIX:-/usr/local}"
-SPOTLET_MOUNT_DIR="${SPOTLET_MOUNT_DIR:-$(pwd)}"
-SPOTLET_GIT_REMOTE="${SPOTLET_GIT_REMOTE:-"git@github.com:"}"
-SPOTLET_REMOTE="${SPOTLET_REMOTE:-"https://raw.githubusercontent.com"}"
-SPOTLET_INDEX="${SPOTLET_INDEX:-${PREFIX}/.spotlets}"
-
 ## https://gist.github.com/pkuczynski/8665367
 parse_yaml() {
   local prefix=$2
