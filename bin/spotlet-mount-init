@@ -70,7 +70,7 @@ spotlet () {
 
   cd ${APP}
 
-  status "${APP}"  "healthcheck"
+  status "${APP}" "healthcheck"
   ## ensures dependencies structure exists
   ensure -d "${PREFIX}"
   ensure -d "${PREFIX}"
@@ -86,39 +86,39 @@ spotlet () {
 
     for spin in ${spins[@]}; do
       info "Building spin \`${spin}'"
-      status "${APP}"  "spin:${spin}"
+      status "${APP}" "spin:${spin}"
 
       export SPIN_DIR="${spin}"
 
       ## feature detect and determine if
       ## compilation is needed
-      status "${APP}"  "spin:${spin}:detect"
+      status "${APP}" "spin:${spin}:detect"
       (spin-cmd ${spin} 'detect')
       rc=$?
       if [ "${rc}" == "${ERROR}" ]; then
-        status "${APP}"  "spin:${spin}:detect:failed"
+        status "${APP}" "spin:${spin}:detect:failed"
         return ${rc}
       elif [ "${rc}" == "${NEEDS_COMPILE}" ]; then
         info "Needs compile"
-        status "${APP}"  "spin:${spin}:compile"
+        status "${APP}" "spin:${spin}:compile"
         (spin-cmd ${spin} 'compile')
         if [ "${rc}" == "${ERROR}" ]; then
-          status "${APP}"  "spin:${spin}:compile:failed"
+          status "${APP}" "spin:${spin}:compile:failed"
           return ${rc}
         fi
       fi
 
       ## run tests
-      status "${APP}"  "spin:${spin}:test"
+      status "${APP}" "spin:${spin}:test"
       (spin-cmd ${spin} 'test')
       rc=$?
       if [ "${rc}" == "${ERROR}" ]; then
-        status "${APP}"  "spin:${spin}:test:failed"
+        status "${APP}" "spin:${spin}:test:failed"
         return ${rc}
       fi
 
       if (( ${rc} > 0 && ${rc} < 10 )); then
-        status "${APP}"  "spin:${spin}:failed"
+        status "${APP}" "spin:${spin}:failed"
         return ${rc}
       fi
     done

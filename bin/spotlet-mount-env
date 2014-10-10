@@ -2,18 +2,23 @@
 
 main () {
   local local_env=0
+  local pre="/usr/local"
+  local spdir
   case "${1}" in
     -l|--local)
       let local_env=1
   esac
 
   if (( 1 == ${local_env} )); then
-    echo 'export SPOTLET_MOUNT_DIR=$HOME/.spotlet/mount'
-    echo 'export SPOTLET_INDEX=$HOME/.spotlets'
-  else
-    echo 'export SPOTLET_MOUNT_DIR=${SPOTLET_MOUNT_DIR:-/usr/local/spotlet/mount}'
-    echo 'export SPOTLET_INDEX=${SPOTLET_INDEX:-/usr/local/spotlets}'
+    pre="${HOME}"
   fi
+
+  spdir="${pre}/.spotlet"
+
+  echo "export SPOTLET_DIR=${spdir}"
+  echo "export SPOTLET_INDEX=${pre}/.spotlets"
+  echo "export SPOTLET_MOUNT_DIR=${spdir}/mount"
+  echo "export SPOTLET_REALMS=${spdir}/realms"
 
   return 0
 }
