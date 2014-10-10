@@ -47,13 +47,15 @@ ensure () {
 spin-cmd () {
   local spin="${1}"; shift
   local cmd="${1}"; shift
-  echo "${spin}: $cmd"
-  ensure -f "${APP}/spins/${spin}/${cmd}"
-  pushd . > /dev/null 2>&1
-  cd "${APP}/spins/${spin}"
-  ("${APP}/spins/${spin}/${cmd}" "${@}")
-  local rc=$?
-  popd > /dev/null 2>&1
+  local rc=0
+  if test -f "${APP}/spins/${spin}/${cmd}"; then
+    echo "${spin}: $cmd"
+    pushd . > /dev/null 2>&1
+    cd "${APP}/spins/${spin}"
+    sudo "${APP}/spins/${spin}/${cmd}" "${@}"
+    rc=$?
+    popd > /dev/null 2>&1
+  fi
   return ${rc}
 }
 
@@ -85,7 +87,6 @@ spotlet () {
     spins+=($( ls ${APP}/spins ))
 
     for spin in ${spins[@]}; do
-      info "Building spin \`${spin}'"
       status "${APP}" "spin:${spin}"
 
       export SPIN_DIR="${spin}"
@@ -98,14 +99,13 @@ spotlet () {
       if [ "${rc}" == "${ERROR}" ]; then
         status "${APP}" "spin:${spin}:detect:failed"
         return ${rc}
-      elif [ "${rc}" == "${NEEDS_COMPILE}" ]; then
-        info "Needs compile"
-        status "${APP}" "spin:${spin}:compile"
-        (spin-cmd ${spin} 'compile')
-        if [ "${rc}" == "${ERROR}" ]; then
-          status "${APP}" "spin:${spin}:compile:failed"
-          return ${rc}
-        fi
+      fi
+
+      status "${APP}" "spin:${spin}:compile"
+      (spin-cmd ${spin} 'compile')
+      if [ "${rc}" == "${ERROR}" ]; then
+        status "${APP}" "spin:${spin}:compile:failed"
+        return ${rc}
       fi
 
       ## run tests
